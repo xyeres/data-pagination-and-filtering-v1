@@ -23,9 +23,9 @@ const perPage = 9;
 
 // Function to render html contents of a page
 function showPage(list, page) {
+   const studentList = document.querySelector('.student-list');
    const startIndex = (page * perPage) - perPage;
    const endIndex = page * perPage;
-   const studentList = document.querySelector('.student-list');
 
    // remove any existing students by clearing inner html
    studentList.innerHTML = '';
@@ -50,8 +50,6 @@ function showPage(list, page) {
          studentList.insertAdjacentHTML('beforeend', html);
       }
    }
-
-
 };
 
 /*
@@ -96,8 +94,75 @@ function addPagination(list) {
 
 // Call functions
 
-// Render initial page
-showPage(data, 1);
+// create main function to handle search
+function main(data) {
+   // Render initial page
+   showPage(data, 1);
+   // Add pagination for other pages
+   addPagination(data);
+};
 
-// Add pagination for other pages
-addPagination(data);
+// Run main function on first load
+main(data);
+
+/*
+Search functionality
+*/
+
+const header = document.querySelector('header');
+
+// Render form search input and button
+html = `
+   <div id='searchBox'>
+      <label for="search" class="student-search">
+      <input id="search" placeholder="Search by name...">
+      <button type="button"><img src="img/icn-search.svg" alt="Search icon"></button>
+      </label>
+   </div>
+`
+header.insertAdjacentHTML('beforeend', html);
+
+const searchBtn = header.querySelector('button');
+const searchInput = header.querySelector('input');
+
+/***
+ * `searchStudents` takes input field and a list,
+ * returns: array of search results
+ ***/
+function searchStudents(input, list) {
+   const searchVal = input.value.toLowerCase();
+   const searchList = []
+
+   for (let i = 0; i < list.length; i++) {
+      const student = list[i]
+      // consider using regex in future release
+      if (student.name.first.toLowerCase().indexOf(searchVal) !== -1
+         || student.name.last.toLowerCase().indexOf(searchVal) !== -1) {
+         searchList.push(student);
+      }
+   }
+   return searchList;
+}
+
+/***
+ * `searchOrMain` provides logic to either search data set or render main page
+ ***/
+function searchOrMain() {
+   if (searchInput.value.length !== 0) {
+      let resultsList = searchStudents(searchInput, data);
+      if (resultsList.length == 0) {
+         document.querySelector('.student-list').textContent = 'No results found';
+         document.querySelector('.link-list').innerHTML = '';
+         return 1;
+      } else {
+         showPage(resultsList, 1);
+         addPagination(resultsList);
+      }
+   } else {
+      main(data);
+   }
+};
+
+// handle search methods, click or type 
+searchBtn.addEventListener('click', () => searchOrMain());
+searchInput.addEventListener('keyup', () => searchOrMain());
